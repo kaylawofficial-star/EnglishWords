@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#F3F8FC">
+  <title>单词航岛 · 高保真交互原型</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5v8a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-parent" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 20v-2.2A4.8 4.8 0 0 1 8.3 13h1.4a4.8 4.8 0 0 1 4.8 4.8V20M14 14.5h1.8a4.7 4.7 0 0 1 4.7 4.7v.8"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M5 9h4l5-4v14l-5-4H5zM17 9.2a4 4 0 0 1 0 5.6M19.5 6.5a7.7 7.7 0 0 1 0 11"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="13" rx="4"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 6v12M15 6v12"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A3.5 3.5 0 0 1 7.5 2H11v17H7.5A3.5 3.5 0 0 0 4 22zM20 5.5A3.5 3.5 0 0 0 16.5 2H13v17h3.5A3.5 3.5 0 0 1 20 22z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 21v-9M12 13C8 13 5 10.5 5 6c4 0 7 2.5 7 7ZM12 16c0-4.5 3-7 7-7 0 4.5-3 7-7 7Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5.3-3.4 8.5-8 10-4.6-1.5-8-4.7-8-10V6z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></symbol>
+    <symbol id="i-slow" viewBox="0 0 24 24"><path d="M4 16c1.5-5.5 5-8.5 10-8.5 2.3 0 4.4.7 6 2M5 16h5M7.5 13.5V18.5"/><circle cx="17" cy="15" r="2.5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></symbol>
+  </svg>
+
+  <main class="prototype-stage">
+    <section class="prototype-note" aria-label="原型说明">
+      <div class="brand-mark" aria-hidden="true"><span class="brand-sail"></span></div>
+      <p class="eyebrow">CALM ADVENTURE · INTERACTIVE PROTOTYPE</p>
+      <h1>单词航岛</h1>
+      <p>面向小学阶段的英语单词记忆体验。点击手机中的按钮，可走完一次今日航程并查看家长周报。</p>
+      <div class="prototype-tags"><span>移动端优先</span><span>单屏单任务</span><span>低压力反馈</span></div>
+      <div class="flow-map" aria-label="原型流程">
+        <span>首页</span><i></i><span>听音</span><i></i><span>联想</span><i></i><span>验证</span><i></i><span>跟读</span><i></i><span>完成</span>
+      </div>
+    </section>
+
+    <section class="device" aria-label="单词航岛小程序原型">
+      <div class="device-speaker" aria-hidden="true"></div>
+      <div class="app-shell">
+        <header class="status-bar" aria-hidden="true"><span>9:41</span><span class="status-icons">● ● ▰</span></header>
+        <div id="app" class="app-view" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
