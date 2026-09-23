@@ -22,16 +22,22 @@ describe('cloud content service', () => {
   });
 
   it('rejects a malformed success envelope', async () => {
+    const diagnostic = vi.fn();
     const caller = {
       callFunction: vi.fn().mockResolvedValue({ result: { ok: true, data: {} } }),
     };
 
-    const result = await createCloudContentService(caller).getTextbookContent('book-1');
+    const result = await createCloudContentService(caller, diagnostic)
+      .getTextbookContent('book-1');
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe('INVALID_RESPONSE');
     }
+    expect(diagnostic).toHaveBeenCalledWith(
+      'Content service response failed content validation',
+      expect.objectContaining({ reason: expect.any(String) }),
+    );
   });
 
   it('returns validated cloud content and sends the requested id', async () => {

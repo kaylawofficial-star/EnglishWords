@@ -1,4 +1,5 @@
 import type { ContentSnapshot } from '../../services/content/content-loader';
+import { createContentErrorMessage } from '../content-error-message';
 import { createLearnViewModel, type LearnViewModel } from './view-model';
 
 interface LearnPageData {
@@ -48,7 +49,7 @@ Page<LearnPageData, WechatMiniprogram.Page.CustomOption>({
       this.setData({
         status: 'error',
         viewModel: null,
-        errorMessage: snapshot.error.message,
+        errorMessage: createContentErrorMessage(snapshot.error.code),
       });
     }
   },

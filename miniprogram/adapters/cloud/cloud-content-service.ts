@@ -12,6 +12,15 @@ export interface CloudFunctionCaller {
   }): Promise<{ result?: unknown }>;
 }
 
+export type ContentDiagnostic = (
+  message: string,
+  details: Record<string, unknown>,
+) => void;
+
+const defaultDiagnostic: ContentDiagnostic = (message, details) => {
+  console.warn(`[content-service] ${message}`, details);
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -24,7 +33,12 @@ function isErrorCode(value: unknown): value is ContentErrorCode {
   );
 }
 
-function invalidResponse(): ContentServiceResponse {
+function invalidResponse(
+  diagnostic: ContentDiagnostic,
+  message: string,
+  details: Record<string, unknown>,
+): ContentServiceResponse {
+  diagnostic(message, details);
   return {
     ok: false,
     error: {
@@ -34,31 +48,51 @@ function invalidResponse(): ContentServiceResponse {
   };
 }
 
-function parseResponse(value: unknown): ContentServiceResponse {
+function parseResponse(
+  value: unknown,
+  diagnostic: ContentDiagnostic,
+): ContentServiceResponse {
   if (!isRecord(value) || typeof value.ok !== 'boolean') {
-    return invalidResponse();
+    return invalidResponse(
+      diagnostic,
+      'Content service response has an invalid envelope',
+      { reason: 'Expected an object with a boolean ok field' },
+    );
   }
 
   if (value.ok) {
     try {
       return { ok: true, data: parseTextbookContent(value.data) };
-    } catch {
-      return invalidResponse();
+    } catch (error) {
+      return invalidResponse(
+        diagnostic,
+        'Content service response failed content validation',
+        { reason: error instanceof Error ? error.message : String(error) },
+      );
     }
   }
 
   if (!isRecord(value.error)) {
-    return invalidResponse();
+    return invalidResponse(
+      diagnostic,
+      'Content service error response is malformed',
+      { reason: 'Expected an error object' },
+    );
   }
   const { code, message } = value.error;
   if (!isErrorCode(code) || typeof message !== 'string' || message.length === 0) {
-    return invalidResponse();
+    return invalidResponse(
+      diagnostic,
+      'Content service error response is malformed',
+      { reason: 'Expected a supported error code and non-empty message' },
+    );
   }
   return { ok: false, error: { code, message } };
 }
 
 export function createCloudContentService(
   caller: CloudFunctionCaller,
+  diagnostic: ContentDiagnostic = defaultDiagnostic,
 ): ContentService {
   return {
     async getTextbookContent(textbookId) {
@@ -67,7 +101,7 @@ export function createCloudContentService(
           name: 'content-service',
           data: { action: 'getTextbookContent', textbookId },
         });
-        return parseResponse(response.result);
+        return parseResponse(response.result, diagnostic);
       } catch {
         return {
           ok: false,
