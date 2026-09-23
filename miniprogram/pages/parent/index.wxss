@@ -1,0 +1,23 @@
+.detail-list {
+  border-top: 2rpx solid #dce5ec;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 88rpx;
+  border-bottom: 2rpx solid #dce5ec;
+  font-size: 28rpx;
+}
+
+.detail-row text:first-child {
+  color: #66798b;
+}
+
+.detail-row text:last-child {
+  margin-left: 24rpx;
+  overflow-wrap: anywhere;
+  text-align: right;
+  font-weight: 600;
+}

@@ -1,0 +1,32 @@
+<view class="page-shell">
+  <view class="eyebrow">家长</view>
+  <view class="page-title">教材信息</view>
+  <view class="page-intro">这里展示当前试点内容的来源与覆盖范围。</view>
+
+  <view wx:if="{{isLocalMode}}" class="mode-notice" role="status">
+    本地演示模式：当前数据仅用于界面与流程验证。
+  </view>
+
+  <view wx:if="{{status === 'ready'}}" class="summary-card">
+    <view class="card-label">当前教材</view>
+    <view class="card-title">{{viewModel.textbookName}}</view>
+    <view class="detail-list">
+      <view class="detail-row"><text>版本</text><text>{{viewModel.edition}}</text></view>
+      <view class="detail-row"><text>年份</text><text>{{viewModel.year}}</text></view>
+      <view class="detail-row"><text>年级</text><text>{{viewModel.gradeLabel}}</text></view>
+      <view class="detail-row"><text>学期</text><text>{{viewModel.termLabel}}</text></view>
+      <view class="detail-row"><text>单元数</text><text>{{viewModel.unitCount}}</text></view>
+    </view>
+  </view>
+
+  <view wx:if="{{status === 'loading'}}" class="status-card" role="status">
+    <view class="status-title">正在读取教材信息</view>
+    <view class="status-copy">请稍等一下。</view>
+  </view>
+
+  <view wx:if="{{status === 'error'}}" class="status-card" role="alert">
+    <view class="status-title">暂时没有加载成功</view>
+    <view class="status-copy">{{errorMessage || '请检查网络后再试一次。'}}</view>
+    <button class="retry-button" bindtap="retry">再试一次</button>
+  </view>
+</view>

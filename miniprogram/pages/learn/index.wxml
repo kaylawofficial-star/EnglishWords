@@ -1,0 +1,35 @@
+<view class="page-shell">
+  <view class="eyebrow">学习</view>
+  <view class="page-title">教材已准备好</view>
+  <view class="page-intro">先确认当前教材和单元，学习航程将在后续任务中接入。</view>
+
+  <view wx:if="{{isLocalMode}}" class="mode-notice" role="status">
+    本地演示模式：当前使用内置示例内容，不会连接微信云。
+  </view>
+
+  <view wx:if="{{status === 'ready'}}" class="summary-card">
+    <view class="card-label">当前教材</view>
+    <view class="card-title">{{viewModel.textbookName}}</view>
+    <view class="metric-row">
+      <view class="metric">
+        <text class="metric-value">{{viewModel.currentUnitName}}</text>
+        <text class="metric-label">当前单元</text>
+      </view>
+      <view class="metric">
+        <text class="metric-value">{{viewModel.totalWords}}</text>
+        <text class="metric-label">收录单词</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{status === 'loading'}}" class="status-card" role="status">
+    <view class="status-title">正在准备教材</view>
+    <view class="status-copy">请稍等一下，内容马上就好。</view>
+  </view>
+
+  <view wx:if="{{status === 'error'}}" class="status-card" role="alert">
+    <view class="status-title">暂时没有加载成功</view>
+    <view class="status-copy">{{errorMessage || '请检查网络后再试一次。'}}</view>
+    <button class="retry-button" bindtap="retry">再试一次</button>
+  </view>
+</view>

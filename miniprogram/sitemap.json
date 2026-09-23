@@ -1,0 +1,9 @@
+{
+  "desc": "试点项目默认不参与微信索引",
+  "rules": [
+    {
+      "action": "disallow",
+      "page": "*"
+    }
+  ]
+}
