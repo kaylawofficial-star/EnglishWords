@@ -40,4 +40,12 @@ describe('local content service', () => {
       expect(second.data.units).toHaveLength(2);
     }
   });
+
+  it('resolves a publication by its historical id', async () => {
+    const result = await createLocalContentService().getHistoricalPublication(
+      'publication-demo-school-v1',
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.data.entries.map((entry) => entry.word)).toEqual(['school']);
+  });
 });

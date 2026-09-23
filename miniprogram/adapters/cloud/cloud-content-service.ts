@@ -96,10 +96,21 @@ export function createCloudContentService(
 ): ContentService {
   return {
     async getTextbookContent(textbookId) {
+      return callAndParse('getTextbookContent', { textbookId });
+    },
+    async getHistoricalPublication(publicationId) {
+      return callAndParse('getHistoricalPublication', { publicationId });
+    },
+  };
+
+  async function callAndParse(
+    action: string,
+    data: Record<string, unknown>,
+  ): Promise<ContentServiceResponse> {
       try {
         const response = await caller.callFunction({
           name: 'content-service',
-          data: { action: 'getTextbookContent', textbookId },
+          data: { action, ...data },
         });
         return parseResponse(response.result, diagnostic);
       } catch {
@@ -111,6 +122,5 @@ export function createCloudContentService(
           },
         };
       }
-    },
-  };
+  }
 }

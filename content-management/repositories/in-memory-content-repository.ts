@@ -6,6 +6,8 @@ import {
   parseDraftId,
   type ContentRepository,
   type ManagedDraftBundle,
+  type PublishTransactionInput,
+  type WithdrawTransactionInput,
 } from './content-repository';
 import type {
   AuditEvent,
@@ -77,6 +79,54 @@ export class InMemoryContentRepository implements ContentRepository {
   async listState(): Promise<ManagedContentState> {
     return clone(this.state);
   }
+
+  async findPublicationByRequestId(requestId: string) {
+    const found = this.state.publications.find((item) => item.requestId === requestId);
+    return found ? clone(found) : undefined;
+  }
+
+  async getPublication(publicationId: string) {
+    const found = this.state.publications.find((item) => item.id === publicationId);
+    return found ? clone(found) : undefined;
+  }
+
+  async publishAtomically(input: PublishTransactionInput) {
+    return this.applyPublication(input);
+  }
+
+  async rollbackAtomically(input: PublishTransactionInput) {
+    return this.applyPublication(input);
+  }
+
+  async withdrawAtomically(input: WithdrawTransactionInput): Promise<void> {
+    const next = clone(this.state);
+    const currentId = next.currentPublicationByPlacement[input.placementId];
+    if (currentId !== input.publicationId) {
+      throw new ContentManagementError('REVISION_CONFLICT', 'Current publication changed');
+    }
+    const publication = next.publications.find((item) => item.id === input.publicationId);
+    if (!publication || publication.status !== 'published') {
+      throw new ContentManagementError('NOT_FOUND', 'Current publication not found');
+    }
+    delete next.currentPublicationByPlacement[input.placementId];
+    next.audits.push(clone(input.audit));
+    this.state = clone(parseManagedContentState(next));
+  }
+
+  private applyPublication(input: PublishTransactionInput) {
+    const existing = this.state.publications.find((item) => item.requestId === input.publication.requestId);
+    if (existing) return Promise.resolve(clone(existing));
+    const next = clone(this.state);
+    const currentId = next.currentPublicationByPlacement[input.publication.placementId] ?? null;
+    if (currentId !== input.expectedCurrentPublicationId) {
+      throw new ContentManagementError('REVISION_CONFLICT', 'Current publication changed');
+    }
+    next.publications.push(clone(input.publication));
+    next.currentPublicationByPlacement[input.publication.placementId] = input.publication.id;
+    next.audits.push(clone(input.audit));
+    this.state = clone(parseManagedContentState(next));
+    return Promise.resolve(clone(input.publication));
+  }
 }
 
 function replaceOrPush<T extends { id: string }>(items: T[], item: T): void {
@@ -84,4 +134,3 @@ function replaceOrPush<T extends { id: string }>(items: T[], item: T): void {
   if (index === -1) items.push(item);
   else items[index] = item;
 }
-

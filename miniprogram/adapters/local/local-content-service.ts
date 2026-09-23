@@ -30,5 +30,17 @@ export function createLocalContentService(
 
       return { ok: true, data: cloneContent(content) };
     },
+    async getHistoricalPublication(publicationId) {
+      for (const content of validatedContents) {
+        const entry = content.entries.find((candidate) => candidate.publicationId === publicationId);
+        if (entry) {
+          return { ok: true, data: cloneContent({ ...content, entries: [entry] }) };
+        }
+      }
+      return {
+        ok: false,
+        error: { code: 'NOT_FOUND', message: `Publication not found: ${publicationId}` },
+      };
+    },
   };
 }

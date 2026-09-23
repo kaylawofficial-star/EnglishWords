@@ -6,6 +6,7 @@ import type {
   TextbookPlacementVersion,
   VocabularyAsset,
   VocabularyAssetVersion,
+  Publication,
 } from '../../shared/contracts/content-management';
 
 export interface ManagedDraftBundle {
@@ -34,5 +35,24 @@ export interface ContentRepository {
   appendReview(review: ReviewRecord): Promise<void>;
   appendAudit(event: AuditEvent): Promise<void>;
   listState(): Promise<ManagedContentState>;
+  publishAtomically(input: PublishTransactionInput): Promise<Publication>;
+  withdrawAtomically(input: WithdrawTransactionInput): Promise<void>;
+  rollbackAtomically(input: PublishTransactionInput): Promise<Publication>;
+  findPublicationByRequestId(requestId: string): Promise<Publication | undefined>;
+  getPublication(publicationId: string): Promise<Publication | undefined>;
 }
 
+export interface PublishTransactionInput {
+  publication: Publication;
+  audit: AuditEvent;
+  expectedCurrentPublicationId: string | null;
+}
+
+export interface WithdrawTransactionInput {
+  placementId: string;
+  publicationId: string;
+  actorId: string;
+  reason: string;
+  withdrawnAt: string;
+  audit: AuditEvent;
+}

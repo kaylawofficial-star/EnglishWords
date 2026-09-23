@@ -34,4 +34,13 @@ describe('content-service cloud function', () => {
       },
     });
   });
+
+  it('resolves historical content without making it current', async () => {
+    const response = await contentServiceMain({
+      action: 'getHistoricalPublication',
+      publicationId: 'publication-demo-school-v1',
+    });
+    expect(response.ok).toBe(true);
+    if (response.ok) expect(response.data.entries[0]?.word).toBe('school');
+  });
 });

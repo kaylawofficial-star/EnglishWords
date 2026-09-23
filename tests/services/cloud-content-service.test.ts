@@ -78,4 +78,15 @@ describe('cloud content service', () => {
       error: { code: 'NOT_FOUND', message: 'Textbook not found: missing' },
     });
   });
+
+  it('requests a historical publication through the same validated boundary', async () => {
+    const caller = { callFunction: vi.fn().mockResolvedValue({ result: { ok: true, data: validContent } }) };
+    await expect(
+      createCloudContentService(caller).getHistoricalPublication('publication-demo-school-v1'),
+    ).resolves.toEqual({ ok: true, data: validContent });
+    expect(caller.callFunction).toHaveBeenCalledWith({
+      name: 'content-service',
+      data: { action: 'getHistoricalPublication', publicationId: 'publication-demo-school-v1' },
+    });
+  });
 });

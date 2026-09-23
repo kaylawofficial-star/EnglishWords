@@ -22,7 +22,9 @@ export class ContentLoader {
     | undefined;
   private nextRequestId = 0;
 
-  constructor(private readonly service: ContentService) {}
+  constructor(
+    private readonly service: Pick<ContentService, 'getTextbookContent'>,
+  ) {}
 
   getSnapshot(): ContentSnapshot {
     return this.snapshot;

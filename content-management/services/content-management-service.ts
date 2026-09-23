@@ -4,6 +4,7 @@ import type {
   ReviewRecord,
   VocabularyAssetVersion,
   TextbookPlacementVersion,
+  Publication,
 } from '../../shared/contracts/content-management';
 import type { ContentRepository, ManagedDraftBundle } from '../repositories/content-repository';
 import { createDraftId } from '../repositories/content-repository';
@@ -145,6 +146,77 @@ export class ContentManagementService {
 
   async reject(input: { actorId: string; draftId: string; checklist: ReviewChecklist; notes: string }) {
     return this.finishReview(input, 'rejected');
+  }
+
+  async publish(input: { actorId: string; draftId: string; requestId: string }): Promise<Publication> {
+    const existing = await this.repository.findPublicationByRequestId(input.requestId);
+    if (existing) return existing;
+    const bundle = await this.getDraft(input.draftId);
+    if (bundle.assetVersion.status !== 'approved' || bundle.placementVersion.status !== 'approved') {
+      throw new ContentManagementError('INVALID_STATE', 'Only approved content can be published');
+    }
+    const state = await this.repository.listState();
+    const approved = state.reviews.some((review) =>
+      review.assetVersionId === bundle.assetVersion.id &&
+      review.placementVersionId === bundle.placementVersion.id &&
+      review.result === 'approved',
+    );
+    if (!approved || !bundle.assetVersion.audio.reviewed || !bundle.assetVersion.image.reviewed || new Set(bundle.assetVersion.distractors).size < 2) {
+      throw new ContentManagementError('VALIDATION_FAILED', 'Content is incomplete or lacks approval');
+    }
+    const publication: Publication = {
+      id: this.dependencies.createId('publication'), placementId: bundle.placement.id,
+      assetVersionId: bundle.assetVersion.id, placementVersionId: bundle.placementVersion.id,
+      status: 'published', sequence: 1 + state.publications.filter((item) => item.placementId === bundle.placement.id).length,
+      requestId: input.requestId, publishedBy: input.actorId, publishedAt: this.dependencies.now(),
+    };
+    const currentId = state.currentPublicationByPlacement[bundle.placement.id] ?? null;
+    return this.repository.publishAtomically({
+      publication,
+      expectedCurrentPublicationId: currentId,
+      audit: { id: this.dependencies.createId('audit'), action: 'published', actorId: input.actorId, targetId: publication.id, reason: 'Published approved content', createdAt: this.dependencies.now() },
+    });
+  }
+
+  async withdraw(input: { actorId: string; placementId: string; reason: string }): Promise<void> {
+    if (!input.reason.trim()) throw new ContentManagementError('VALIDATION_FAILED', 'Withdrawal reason is required');
+    const state = await this.repository.listState();
+    const publicationId = state.currentPublicationByPlacement[input.placementId];
+    if (!publicationId) throw new ContentManagementError('NOT_FOUND', 'Current publication not found');
+    await this.repository.withdrawAtomically({
+      placementId: input.placementId, publicationId, actorId: input.actorId,
+      reason: input.reason, withdrawnAt: this.dependencies.now(),
+      audit: { id: this.dependencies.createId('audit'), action: 'withdrawn', actorId: input.actorId, targetId: publicationId, reason: input.reason, createdAt: this.dependencies.now() },
+    });
+  }
+
+  async rollback(input: { actorId: string; publicationId: string; requestId: string; reason: string }): Promise<Publication> {
+    const existing = await this.repository.findPublicationByRequestId(input.requestId);
+    if (existing) return existing;
+    const historical = await this.repository.getPublication(input.publicationId);
+    if (!historical) throw new ContentManagementError('NOT_FOUND', 'Historical publication not found');
+    const state = await this.repository.listState();
+    const publication: Publication = {
+      id: this.dependencies.createId('publication'), placementId: historical.placementId,
+      assetVersionId: historical.assetVersionId, placementVersionId: historical.placementVersionId,
+      status: 'published', sequence: 1 + state.publications.filter((item) => item.placementId === historical.placementId).length,
+      requestId: input.requestId, publishedBy: input.actorId, publishedAt: this.dependencies.now(),
+    };
+    return this.repository.rollbackAtomically({
+      publication,
+      expectedCurrentPublicationId: state.currentPublicationByPlacement[historical.placementId] ?? null,
+      audit: { id: this.dependencies.createId('audit'), action: 'rolled_back', actorId: input.actorId, targetId: publication.id, reason: input.reason, createdAt: this.dependencies.now() },
+    });
+  }
+
+  async getPublicationHistory(placementId: string): Promise<Publication[]> {
+    return (await this.repository.listState()).publications.filter((item) => item.placementId === placementId);
+  }
+
+  async resolveHistoricalPublication(publicationId: string): Promise<Publication> {
+    const publication = await this.repository.getPublication(publicationId);
+    if (!publication) throw new ContentManagementError('NOT_FOUND', 'Historical publication not found');
+    return publication;
   }
 
   private async finishReview(input: { actorId: string; draftId: string; checklist: ReviewChecklist; notes: string }, result: 'approved' | 'rejected') {

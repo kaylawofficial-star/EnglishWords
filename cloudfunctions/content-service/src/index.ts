@@ -4,6 +4,7 @@ import type { ContentServiceResponse } from '../../../shared/contracts/content';
 export interface ContentServiceEvent {
   action?: unknown;
   textbookId?: unknown;
+  publicationId?: unknown;
 }
 
 const contentService = createLocalContentService();
@@ -11,6 +12,10 @@ const contentService = createLocalContentService();
 export async function contentServiceMain(
   event: ContentServiceEvent,
 ): Promise<ContentServiceResponse> {
+  if (event.action === 'getHistoricalPublication') {
+    const publicationId = typeof event.publicationId === 'string' ? event.publicationId : '';
+    return contentService.getHistoricalPublication(publicationId);
+  }
   if (event.action !== 'getTextbookContent') {
     return {
       ok: false,
