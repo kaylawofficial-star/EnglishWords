@@ -1,11 +1,12 @@
 import type {
   SchoolStage,
   SchoolTerm,
+  PublishedVocabularyEntry,
   Textbook,
   TextbookContent,
   Unit,
-  VocabularyEntry,
 } from '../contracts/content';
+import { parseMediaReference } from './content-management';
 
 export class ContentValidationError extends Error {
   constructor(path: string, message: string) {
@@ -40,6 +41,24 @@ function requirePositiveInteger(value: unknown, path: string): number {
     throw new ContentValidationError(path, 'expected a positive integer');
   }
   return value as number;
+}
+
+function requireIsoTimestamp(value: unknown, path: string): string {
+  const timestamp = requireNonEmptyString(value, path);
+  if (Number.isNaN(Date.parse(timestamp))) {
+    throw new ContentValidationError(path, 'expected an ISO timestamp');
+  }
+  return timestamp;
+}
+
+function requireStringArray(value: unknown, path: string): string[] {
+  const values = requireArray(value, path).map((item, index) =>
+    requireNonEmptyString(item, `${path}[${index}]`),
+  );
+  if (values.length === 0) {
+    throw new ContentValidationError(path, 'expected at least one value');
+  }
+  return values;
 }
 
 function requireEnum<T extends string>(
@@ -93,7 +112,7 @@ function parseUnit(value: unknown, index: number): Unit {
   };
 }
 
-function parseEntry(value: unknown, index: number): VocabularyEntry {
+function parseEntry(value: unknown, index: number): PublishedVocabularyEntry {
   const path = `entries[${index}]`;
   const record = requireRecord(value, path);
   return {
@@ -102,6 +121,20 @@ function parseEntry(value: unknown, index: number): VocabularyEntry {
     word: requireNonEmptyString(record.word, `${path}.word`),
     meaning: requireNonEmptyString(record.meaning, `${path}.meaning`),
     order: requirePositiveInteger(record.order, `${path}.order`),
+    assetId: requireNonEmptyString(record.assetId, `${path}.assetId`),
+    assetVersionId: requireNonEmptyString(record.assetVersionId, `${path}.assetVersionId`),
+    placementId: requireNonEmptyString(record.placementId, `${path}.placementId`),
+    placementVersionId: requireNonEmptyString(record.placementVersionId, `${path}.placementVersionId`),
+    publicationId: requireNonEmptyString(record.publicationId, `${path}.publicationId`),
+    publishedAt: requireIsoTimestamp(record.publishedAt, `${path}.publishedAt`),
+    audio: parseMediaReference(record.audio, `${path}.audio`),
+    mnemonicStory: requireNonEmptyString(record.mnemonicStory, `${path}.mnemonicStory`),
+    image: parseMediaReference(record.image, `${path}.image`),
+    distractors: requireStringArray(record.distractors, `${path}.distractors`),
+    correctionCandidates: requireStringArray(
+      record.correctionCandidates,
+      `${path}.correctionCandidates`,
+    ),
   };
 }
 
@@ -129,6 +162,12 @@ export function parseTextbookContent(value: unknown): TextbookContent {
         `entries[${index}].unitId`,
         `unknown unit ${entry.unitId}`,
       );
+    }
+    if (!entry.audio.reviewed) {
+      throw new ContentValidationError(`entries[${index}].audio.reviewed`, 'expected reviewed media');
+    }
+    if (!entry.image.reviewed) {
+      throw new ContentValidationError(`entries[${index}].image.reviewed`, 'expected reviewed media');
     }
   }
 

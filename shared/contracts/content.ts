@@ -26,10 +26,24 @@ export interface VocabularyEntry {
   order: number;
 }
 
+export interface PublishedVocabularyEntry extends VocabularyEntry {
+  assetId: string;
+  assetVersionId: string;
+  placementId: string;
+  placementVersionId: string;
+  publicationId: string;
+  publishedAt: string;
+  audio: MediaReference;
+  mnemonicStory: string;
+  image: MediaReference;
+  distractors: string[];
+  correctionCandidates: string[];
+}
+
 export interface TextbookContent {
   textbook: Textbook;
   units: Unit[];
-  entries: VocabularyEntry[];
+  entries: PublishedVocabularyEntry[];
 }
 
 export type ContentErrorCode =
@@ -43,3 +57,4 @@ export type ContentServiceResponse =
       ok: false;
       error: { code: ContentErrorCode; message: string };
     };
+import type { MediaReference } from './content-management';
