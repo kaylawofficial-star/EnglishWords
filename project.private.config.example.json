@@ -1,0 +1,5 @@
+{
+  "description": "复制为 project.private.config.json，并在取得 AppID 后替换 appid",
+  "appid": "wx-your-real-appid",
+  "projectname": "k12-english-word-voyage"
+}

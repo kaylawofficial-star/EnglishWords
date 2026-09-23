@@ -1,0 +1,13 @@
+{
+  "description": "K12 英语单词速记微信小程序",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "dist/miniprogram/",
+  "cloudfunctionRoot": "dist/cloudfunctions/",
+  "appid": "touristappid",
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "postcss": true
+  },
+  "projectname": "k12-english-word-voyage"
+}
