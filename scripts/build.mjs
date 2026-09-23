@@ -27,6 +27,7 @@ const staticFiles = [
 const cloudFunctions = [
   { name: 'health-check', entry: 'cloudfunctions/health-check/src/index.ts' },
   { name: 'content-service', entry: 'cloudfunctions/content-service/src/index.ts' },
+  { name: 'content-management', entry: 'cloudfunctions/content-management/src/index.ts' },
 ];
 
 async function assertFile(path) {
@@ -70,6 +71,7 @@ for (const cloudFunction of cloudFunctions) {
     format: 'cjs',
     platform: 'node',
     target: 'node20',
+    external: cloudFunction.name === 'content-management' ? ['wx-server-sdk'] : [],
     logLevel: 'info',
   });
   await writeFile(
@@ -78,6 +80,9 @@ for (const cloudFunction of cloudFunctions) {
       name: cloudFunction.name,
       version: '1.0.0',
       main: 'index.js',
+      ...(cloudFunction.name === 'content-management'
+        ? { dependencies: { 'wx-server-sdk': 'latest' } }
+        : {}),
     }, null, 2)}\n`,
     'utf8',
   );

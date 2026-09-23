@@ -26,6 +26,8 @@ it('builds a self-contained WeChat project', () => {
     'dist/cloudfunctions/health-check/package.json',
     'dist/cloudfunctions/content-service/index.js',
     'dist/cloudfunctions/content-service/package.json',
+    'dist/cloudfunctions/content-management/index.js',
+    'dist/cloudfunctions/content-management/package.json',
   ];
 
   for (const path of required) {
@@ -37,4 +39,10 @@ it('builds a self-contained WeChat project', () => {
     'utf8',
   );
   expect(learnBundle).not.toMatch(/from ['"].*shared\//);
+
+  const managementManifest = JSON.parse(readFileSync(
+    resolve('dist/cloudfunctions/content-management/package.json'),
+    'utf8',
+  )) as { dependencies?: Record<string, string> };
+  expect(managementManifest.dependencies).toEqual({ 'wx-server-sdk': 'latest' });
 });
