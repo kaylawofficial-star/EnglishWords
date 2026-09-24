@@ -1,10 +1,8 @@
 import type { AdminAuthProvider } from '../auth/admin-auth-provider';
 import type { MediaStorage } from '../media/media-storage';
+import { isManagementAction, type ManagementAction, type ServiceManagementAction } from './content-management-commands';
 
-export type ManagementAction =
-  | 'listContent' | 'getDraft' | 'getHistory' | 'saveDraft' | 'submitForReview'
-  | 'approve' | 'reject' | 'preview' | 'publish'
-  | 'withdraw' | 'rollback' | 'createUploadIntent';
+export type { ManagementAction } from './content-management-commands';
 
 export interface ManagementEvent {
   action?: unknown;
@@ -13,7 +11,7 @@ export interface ManagementEvent {
 
 interface HandlerDependencies {
   auth: AdminAuthProvider;
-  execute: (action: Exclude<ManagementAction, 'createUploadIntent'>, payload: Record<string, unknown>, actorId: string) => Promise<unknown>;
+  execute: (action: ServiceManagementAction, payload: Record<string, unknown>, actorId: string) => Promise<unknown>;
   mediaStorage: MediaStorage;
 }
 
@@ -25,7 +23,7 @@ export function createContentManagementHandler(dependencies: HandlerDependencies
     } catch {
       return { ok: false as const, error: { code: 'UNAUTHORIZED', message: '管理员身份验证失败' } };
     }
-    if (!isAction(event.action) || !isRecord(event.payload)) {
+    if (!isManagementAction(event.action) || !isRecord(event.payload)) {
       return { ok: false as const, error: { code: 'INVALID_REQUEST', message: '管理请求格式无效' } };
     }
     try {
@@ -44,10 +42,6 @@ export function createContentManagementHandler(dependencies: HandlerDependencies
       };
     }
   };
-}
-
-function isAction(value: unknown): value is ManagementAction {
-  return typeof value === 'string' && ['listContent', 'getDraft', 'getHistory', 'saveDraft', 'submitForReview', 'approve', 'reject', 'preview', 'publish', 'withdraw', 'rollback', 'createUploadIntent'].includes(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

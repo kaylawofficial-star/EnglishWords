@@ -10,6 +10,7 @@ import type { ContentRepository, ManagedDraftBundle } from '../repositories/cont
 import { createDraftId } from '../repositories/content-repository';
 import { ContentManagementError } from './content-errors';
 import { projectContentPreview } from './content-preview-projector';
+import { LocalMediaStorage, type MediaStorage } from '../media/media-storage';
 
 export interface ContentFields {
   baseMeaning: string;
@@ -41,6 +42,7 @@ export interface UpdateDraftChanges extends Partial<ContentFields> {
 interface ServiceDependencies {
   now: () => string;
   createId: (prefix: string) => string;
+  mediaStorage?: Pick<MediaStorage, 'verify'>;
 }
 
 export function normalizeWord(word: string): string {
@@ -50,10 +52,14 @@ export function normalizeWord(word: string): string {
 }
 
 export class ContentManagementService {
+  private readonly mediaStorage: Pick<MediaStorage, 'verify'>;
+
   constructor(
     private readonly repository: ContentRepository,
     private readonly dependencies: ServiceDependencies,
-  ) {}
+  ) {
+    this.mediaStorage = dependencies.mediaStorage ?? new LocalMediaStorage(dependencies.now);
+  }
 
   async createDraft(input: CreateDraftInput): Promise<ManagedDraftBundle> {
     validateCreateInput(input);
@@ -190,6 +196,8 @@ export class ContentManagementService {
     if (!approved || !bundle.assetVersion.audio.reviewed || !bundle.assetVersion.image.reviewed || new Set(bundle.assetVersion.distractors).size < 2) {
       throw new ContentManagementError('VALIDATION_FAILED', 'Content is incomplete or lacks approval');
     }
+    await this.mediaStorage.verify(bundle.assetVersion.audio);
+    await this.mediaStorage.verify(bundle.assetVersion.image);
     const publication: Publication = {
       id: this.dependencies.createId('publication'), placementId: bundle.placement.id,
       assetVersionId: bundle.assetVersion.id, placementVersionId: bundle.placementVersion.id,
@@ -250,6 +258,10 @@ export class ContentManagementService {
     const bundle = await this.getDraft(input.draftId);
     requireStatus(bundle, 'in_review');
     const next = withStatus(bundle, result === 'approved' ? 'approved' : 'draft');
+    if (result === 'approved') {
+      next.assetVersion.audio.reviewed = true;
+      next.assetVersion.image.reviewed = true;
+    }
     await this.repository.saveDraftBundle(next, bundle.assetVersion.revision);
     const review: ReviewRecord = {
       id: this.dependencies.createId('review'), assetVersionId: next.assetVersion.id,

@@ -66,7 +66,7 @@ export function ContentEditorPage({ gateway, draftId, onBack, onSaved, onPreview
         assetId: bundle?.asset.id ?? (normalizeWordDisplay(form.word) || 'new-asset'),
         mimeType: file.type, byteSize: file.size, sha256, rightsSource: '管理员确认具备使用授权',
       });
-      update(kind, { ...reference, reviewed: true });
+      update(kind, reference);
       setNotice(`${kind === 'audio' ? '音频' : '图片'}已上传并标记为待审核素材。`);
     } catch (reason) { setFailure(mapManagementError(reason)); }
     finally { setBusy(false); }

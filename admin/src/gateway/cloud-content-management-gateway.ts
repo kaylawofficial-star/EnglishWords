@@ -4,14 +4,35 @@ import type { CreateUploadIntentInput, UploadIntent } from '../../../content-man
 import type { ManagementAction } from '../../../content-management/transport/content-management-handler';
 import { unwrapManagementEnvelope, type ContentManagementGateway } from './content-management-gateway';
 
+interface CloudbaseApp {
+  auth(): {
+    signInWithCustomTicket(getTicket: () => Promise<string>): Promise<unknown>;
+  };
+  callFunction?(input: { name: string; data: unknown }): Promise<{ result?: unknown }>;
+  uploadFile?(input: { cloudPath: string; filePath: File }): Promise<{ fileID: string }>;
+}
+
+type CloudbaseInitializer = (config: { env: string }) => CloudbaseApp;
+
 export class CloudContentManagementGateway implements ContentManagementGateway {
   readonly mode = 'cloud' as const;
   readonly modeLabel = '微信云开发模式';
-  private readonly app: ReturnType<typeof cloudbase.init>;
+  private readonly app: CloudbaseApp;
 
-  constructor(environmentId: string) {
+  private constructor(app: CloudbaseApp) {
+    this.app = app;
+  }
+
+  static async connect(
+    environmentId: string,
+    customTicket: string,
+    initialize: CloudbaseInitializer = cloudbase.init as CloudbaseInitializer,
+  ): Promise<CloudContentManagementGateway> {
     if (!environmentId.trim()) throw new Error('CloudBase environment ID is required');
-    this.app = cloudbase.init({ env: environmentId });
+    if (!customTicket.trim()) throw new Error('CloudBase custom ticket is required');
+    const app = initialize({ env: environmentId });
+    await app.auth().signInWithCustomTicket(() => Promise.resolve(customTicket));
+    return new CloudContentManagementGateway(app);
   }
 
   async execute<T>(action: ManagementAction, payload: Record<string, unknown>): Promise<T> {

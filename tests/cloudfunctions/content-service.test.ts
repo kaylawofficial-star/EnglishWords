@@ -1,7 +1,27 @@
 import { describe, expect, it } from 'vitest';
-import { contentServiceMain } from '../../cloudfunctions/content-service/src/index';
+import { createContentServiceMain, contentServiceMain } from '../../cloudfunctions/content-service/src/index';
+import type { ContentService } from '../../miniprogram/services/content/content-service';
 
 describe('content-service cloud function', () => {
+  it('reads student content through the configured managed-content service', async () => {
+    const service: ContentService = {
+      getTextbookContent: async (textbookId) => ({
+        ok: false,
+        error: { code: 'NOT_FOUND', message: `managed:${textbookId}` },
+      }),
+      getHistoricalPublication: async (publicationId) => ({
+        ok: false,
+        error: { code: 'NOT_FOUND', message: `managed-history:${publicationId}` },
+      }),
+    };
+    const main = createContentServiceMain(service);
+
+    await expect(main({ action: 'getTextbookContent', textbookId: 'cloud-book' }))
+      .resolves.toMatchObject({ error: { message: 'managed:cloud-book' } });
+    await expect(main({ action: 'getHistoricalPublication', publicationId: 'cloud-publication' }))
+      .resolves.toMatchObject({ error: { message: 'managed-history:cloud-publication' } });
+  });
+
   it('returns configured content for an exact textbook id', async () => {
     const response = await contentServiceMain({
       action: 'getTextbookContent',

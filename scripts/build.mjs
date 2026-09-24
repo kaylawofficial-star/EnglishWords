@@ -73,7 +73,7 @@ for (const cloudFunction of cloudFunctions) {
     format: 'cjs',
     platform: 'node',
     target: 'node20',
-    external: cloudFunction.name === 'content-management' ? ['wx-server-sdk'] : [],
+    external: ['content-service', 'content-management'].includes(cloudFunction.name) ? ['wx-server-sdk'] : [],
     logLevel: 'info',
   });
   await writeFile(
@@ -82,7 +82,7 @@ for (const cloudFunction of cloudFunctions) {
       name: cloudFunction.name,
       version: '1.0.0',
       main: 'index.js',
-      ...(cloudFunction.name === 'content-management'
+      ...(['content-service', 'content-management'].includes(cloudFunction.name)
         ? { dependencies: { 'wx-server-sdk': 'latest' } }
         : {}),
     }, null, 2)}\n`,

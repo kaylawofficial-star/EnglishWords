@@ -44,7 +44,7 @@ npm run check
 2. `content-service`：为两个学生端页面提供统一教材内容；
 3. `content-management`：处理管理员授权、草稿、审核、发布、下架、回滚和上传凭证。
 
-为 `content-management` 云函数设置环境变量 `CONTENT_ADMIN_IDS`，值为允许管理内容的 OpenID，多个 ID 用英文逗号分隔。首版只配置一个管理员。网页端隐藏按钮不构成授权，所有管理动作仍由云函数白名单复核。
+为 `content-management` 云函数设置环境变量 `CONTENT_ADMIN_IDS`，值为允许管理内容的 CloudBase 自定义用户 ID（云函数上下文中的 `TCB_CUSTOM_USER_ID`），多个 ID 用英文逗号分隔。首版只配置一个管理员。兼容微信调用时也可使用受信任上下文中的 OpenID。网页端隐藏按钮不构成授权，所有管理动作仍由云函数白名单复核。
 
 ## 7. 配置数据库、索引与存储
 
@@ -61,7 +61,7 @@ npm run check
 
 稳定记录使用业务 ID 作为文档 ID。建议为 `content_assets.normalizedWord`、`content_placements.assetId`、`content_placements.textbookId`、`content_placements.unitId`、`content_publications.requestId` 建立索引。发布、下架和回滚必须在数据库事务中更新发布记录与当前指针。
 
-在 CloudBase Web 控制台配置网页安全域名和自定义身份验证，使内容工作台能够登录后调用 `content-management`。浏览器只向云函数申请上传意图，再直传云存储；不得把长期密钥下发到前端。
+在 CloudBase Web 控制台配置网页安全域名和自定义身份验证。由受信任的票据签发服务生成短期自定义登录 Ticket，内容工作台输入环境 ID 与 Ticket 后先调用 `signInWithCustomTicket`，成功后才能调用 `content-management`。浏览器只向云函数申请上传意图，再直传云存储；不得把长期密钥下发到前端。
 
 允许的素材格式为 PNG、JPEG、WebP、MP3 和 MP4 音频，单文件必须大于 0 且不超过 10 MB，并提供 SHA-256、授权来源和人工审核状态。缺少授权或未审核的素材不能发布。
 

@@ -2,6 +2,7 @@ import type { MediaReference } from '../../../shared/contracts/content-managemen
 import { LocalMediaStorage, type CreateUploadIntentInput } from '../../../content-management/media/media-storage';
 import { ContentManagementService } from '../../../content-management/services/content-management-service';
 import type { ManagementAction } from '../../../content-management/transport/content-management-handler';
+import { executeContentManagementCommand } from '../../../content-management/transport/content-management-commands';
 import type { BrowserContentRepository } from '../storage/browser-content-repository';
 import type { ContentManagementGateway } from './content-management-gateway';
 
@@ -15,27 +16,14 @@ export class LocalContentManagementGateway implements ContentManagementGateway {
     this.service = new ContentManagementService(repository, {
       now: () => new Date().toISOString(),
       createId: (prefix) => `${prefix}-${crypto.randomUUID()}`,
+      mediaStorage: this.media,
     });
   }
 
   async execute<T>(action: ManagementAction, payload: Record<string, unknown>): Promise<T> {
     const actorId = 'local-admin';
-    switch (action) {
-      case 'listContent': return await this.service.listContent(payload) as T;
-      case 'getDraft': return await this.service.getDraft(String(payload.draftId ?? '')) as T;
-      case 'getHistory': return await this.service.getHistory(String(payload.draftId ?? '')) as T;
-      case 'preview': return await this.service.previewDraft(String(payload.draftId ?? '')) as T;
-      case 'saveDraft': return (payload.draftId
-        ? await this.service.updateDraft({ ...payload, actorId } as never)
-        : await this.service.createDraft({ ...payload, actorId } as never)) as T;
-      case 'submitForReview': return await this.service.submitForReview({ ...payload, actorId } as never) as T;
-      case 'approve': return await this.service.approve({ ...payload, actorId } as never) as T;
-      case 'reject': return await this.service.reject({ ...payload, actorId } as never) as T;
-      case 'publish': return await this.service.publish({ ...payload, actorId } as never) as T;
-      case 'withdraw': return await this.service.withdraw({ ...payload, actorId } as never) as T;
-      case 'rollback': return await this.service.rollback({ ...payload, actorId } as never) as T;
-      case 'createUploadIntent': return await this.media.createUploadIntent(payload as never) as T;
-    }
+    if (action === 'createUploadIntent') return await this.media.createUploadIntent(payload as never) as T;
+    return await executeContentManagementCommand(this.service, action, payload, actorId) as T;
   }
 
   async uploadMedia(file: File, input: CreateUploadIntentInput): Promise<MediaReference> {

@@ -3,15 +3,18 @@ import { useState, type FormEvent } from 'react';
 interface LoginPageProps {
   busy: boolean;
   error: string;
+  rawBackup?: string | undefined;
+  onExportBackup?: (() => void) | undefined;
   onLocal: () => void;
-  onCloud: (environmentId: string) => void;
+  onCloud: (environmentId: string, customTicket: string) => void;
 }
 
-export function LoginPage({ busy, error, onLocal, onCloud }: LoginPageProps) {
+export function LoginPage({ busy, error, rawBackup, onExportBackup, onLocal, onCloud }: LoginPageProps) {
   const [environmentId, setEnvironmentId] = useState('');
+  const [customTicket, setCustomTicket] = useState('');
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    onCloud(environmentId);
+    onCloud(environmentId, customTicket);
   };
 
   return (
@@ -22,6 +25,10 @@ export function LoginPage({ busy, error, onLocal, onCloud }: LoginPageProps) {
         <h1 id="login-title">词舟内容工作台</h1>
         <p className="lead">把词汇资产、教材编排、人工审核与版本发布放在一条清晰的工作流里。</p>
         {error && <div className="notice notice-error" role="alert">{error}</div>}
+        {rawBackup && onExportBackup && <div className="notice" role="status">
+          <p>检测到损坏的本地内容。系统不会自动覆盖或删除原始数据。</p>
+          <button className="button button-secondary button-block" type="button" onClick={onExportBackup}>导出损坏数据备份</button>
+        </div>}
         <button className="button button-primary button-block" disabled={busy} onClick={onLocal}>
           {busy ? '正在进入…' : '进入本地演示模式'}
         </button>
@@ -30,7 +37,9 @@ export function LoginPage({ busy, error, onLocal, onCloud }: LoginPageProps) {
         <form onSubmit={submit} className="stack-form">
           <label htmlFor="environment-id">CloudBase 环境 ID</label>
           <input id="environment-id" value={environmentId} onChange={(event) => setEnvironmentId(event.target.value)} placeholder="例如 cloud1-xxxx" />
-          <button className="button button-secondary button-block" disabled={busy || !environmentId.trim()} type="submit">连接云环境</button>
+          <label htmlFor="custom-ticket">CloudBase 自定义登录 Ticket</label>
+          <input id="custom-ticket" type="password" value={customTicket} onChange={(event) => setCustomTicket(event.target.value)} autoComplete="off" />
+          <button className="button button-secondary button-block" disabled={busy || !environmentId.trim() || !customTicket.trim()} type="submit">连接云环境</button>
         </form>
       </section>
     </main>

@@ -19,30 +19,43 @@ export function App() {
   const [gateway, setGateway] = useState<ContentManagementGateway>();
   const [route, setRoute] = useState<Route>({ name: 'list' });
   const [loginError, setLoginError] = useState('');
+  const [rawBackup, setRawBackup] = useState<string>();
   const [busy, setBusy] = useState(false);
 
   const enterLocal = () => {
     setBusy(true); setLoginError('');
+    const store = new BrowserContentStore(window.localStorage);
     try {
-      const store = new BrowserContentStore(window.localStorage);
       store.load();
+      setRawBackup(undefined);
       setGateway(new LocalContentManagementGateway(new BrowserContentRepository(store)));
     } catch (error) {
+      setRawBackup(store.exportRawBackup() ?? undefined);
       setLoginError(error instanceof Error ? error.message : '本地模式启动失败。');
     } finally { setBusy(false); }
   };
 
-  const enterCloud = async (environmentId: string) => {
+  const enterCloud = async (environmentId: string, customTicket: string) => {
     setBusy(true); setLoginError('');
     try {
       const { CloudContentManagementGateway } = await import('./gateway/cloud-content-management-gateway');
-      setGateway(new CloudContentManagementGateway(environmentId));
+      setGateway(await CloudContentManagementGateway.connect(environmentId, customTicket));
     }
     catch { setLoginError('云环境配置无效，请核对环境 ID。'); }
     finally { setBusy(false); }
   };
 
-  if (!gateway) return <LoginPage busy={busy} error={loginError} onLocal={enterLocal} onCloud={enterCloud} />;
+  const exportBackup = () => {
+    if (!rawBackup) return;
+    const url = URL.createObjectURL(new Blob([rawBackup], { type: 'application/json;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `vocabulary-content-recovery-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (!gateway) return <LoginPage busy={busy} error={loginError} rawBackup={rawBackup} onExportBackup={exportBackup} onLocal={enterLocal} onCloud={enterCloud} />;
 
   return (
     <div className="app-shell">
