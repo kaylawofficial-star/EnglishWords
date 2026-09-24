@@ -65,7 +65,12 @@ export class ContentManagementService {
     };
     const assetVersionNumber = 1 + Math.max(0, ...state.assetVersions.filter((item) => item.assetId === asset.id).map((item) => item.version));
     const assetVersionId = this.dependencies.createId('asset-version');
-    const placementId = this.dependencies.createId('placement');
+    const existingPlacement = state.placements.find((item) =>
+      item.assetId === asset.id && item.textbookId === input.textbookId && item.unitId === input.unitId);
+    const placementId = existingPlacement?.id ?? this.dependencies.createId('placement');
+    const placementVersionNumber = 1 + Math.max(0, ...state.placementVersions
+      .filter((item) => item.placementId === placementId)
+      .map((item) => item.version));
     const placementVersionId = this.dependencies.createId('placement-version');
     const bundle: ManagedDraftBundle = {
       id: createDraftId(assetVersionId, placementVersionId),
@@ -78,9 +83,9 @@ export class ContentManagementService {
         correctionCandidates: [...input.content.correctionCandidates], createdBy: input.actorId,
         createdAt: this.dependencies.now(),
       },
-      placement: { id: placementId, assetId: asset.id, textbookId: input.textbookId, unitId: input.unitId },
+      placement: existingPlacement ?? { id: placementId, assetId: asset.id, textbookId: input.textbookId, unitId: input.unitId },
       placementVersion: {
-        id: placementVersionId, placementId, version: 1, revision: 1, status: 'draft',
+        id: placementVersionId, placementId, version: placementVersionNumber, revision: 1, status: 'draft',
         textbookMeaning: input.textbookMeaning, order: input.order,
         ageCopyOverride: input.ageCopyOverride, createdBy: input.actorId, createdAt: this.dependencies.now(),
       },

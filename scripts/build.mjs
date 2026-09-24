@@ -5,6 +5,7 @@ import { build } from 'esbuild';
 const root = process.cwd();
 const distRoot = resolve(root, 'dist');
 const miniProgramDist = resolve(distRoot, 'miniprogram');
+const cloudFunctionsDist = resolve(distRoot, 'cloudfunctions');
 
 const miniProgramEntries = {
   app: resolve(root, 'miniprogram/app.ts'),
@@ -41,7 +42,8 @@ await Promise.all([
   ...cloudFunctions.map(({ entry }) => assertFile(entry)),
 ]);
 
-await rm(distRoot, { recursive: true, force: true });
+await rm(miniProgramDist, { recursive: true, force: true });
+await rm(cloudFunctionsDist, { recursive: true, force: true });
 await mkdir(miniProgramDist, { recursive: true });
 
 await build({
@@ -62,7 +64,7 @@ for (const source of staticFiles) {
 }
 
 for (const cloudFunction of cloudFunctions) {
-  const outputDirectory = resolve(distRoot, 'cloudfunctions', cloudFunction.name);
+  const outputDirectory = resolve(cloudFunctionsDist, cloudFunction.name);
   await mkdir(outputDirectory, { recursive: true });
   await build({
     entryPoints: [resolve(root, cloudFunction.entry)],

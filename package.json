@@ -9,10 +9,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build": "node scripts/build.mjs",
+    "build": "npm run build:wechat && npm run build:admin",
+    "build:wechat": "node scripts/build.mjs",
     "build:admin": "vite --config vite.admin.config.ts build",
     "content": "tsx tools/content-cli.ts",
-    "check": "npm run typecheck && npm run test && npm run build"
+    "check": "npm run typecheck && npm run test && npm run content -- validate content-packs/demo-school.json && npm run build"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

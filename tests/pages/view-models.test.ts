@@ -31,11 +31,17 @@ it('derives both tabs from arbitrary textbook content', () => {
     })),
     entries: [
       {
+        ...demo.entries[0],
         id: 'alt-word',
         unitId: 'alt-1',
         word: 'river',
         meaning: '河流',
         order: 1,
+        assetId: 'asset-alt-river',
+        assetVersionId: 'asset-alt-river-v1',
+        placementId: 'placement-alt-river',
+        placementVersionId: 'placement-alt-river-v1',
+        publicationId: 'publication-alt-river-v1',
       },
     ],
   });

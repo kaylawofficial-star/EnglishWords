@@ -30,7 +30,7 @@ npm install
 npm run check
 ```
 
-命令成功后，小程序产物位于 `dist/miniprogram/`，云函数产物位于 `dist/cloudfunctions/`。
+命令成功后，小程序产物位于 `dist/miniprogram/`，内容工作台位于 `dist/admin/`，云函数产物位于 `dist/cloudfunctions/`。
 
 ## 5. 导入项目
 
@@ -41,11 +41,37 @@ npm run check
 依次上传并部署以下云函数：
 
 1. `health-check`：用于确认目标环境可调用；
-2. `content-service`：为两个页面提供统一教材内容。
+2. `content-service`：为两个学生端页面提供统一教材内容；
+3. `content-management`：处理管理员授权、草稿、审核、发布、下架、回滚和上传凭证。
 
-当前骨架中的内容函数使用演示 fixture。接入真实云数据库时，应在云函数内部增加数据访问适配器，并保持返回的 `ContentServiceResponse` 契约不变。
+为 `content-management` 云函数设置环境变量 `CONTENT_ADMIN_IDS`，值为允许管理内容的 OpenID，多个 ID 用英文逗号分隔。首版只配置一个管理员。网页端隐藏按钮不构成授权，所有管理动作仍由云函数白名单复核。
 
-## 7. 验收试点环境
+## 7. 配置数据库、索引与存储
+
+创建以下集合：
+
+- `content_assets`
+- `content_asset_versions`
+- `content_placements`
+- `content_placement_versions`
+- `content_reviews`
+- `content_publications`
+- `content_audits`
+- `content_current_publications`
+
+稳定记录使用业务 ID 作为文档 ID。建议为 `content_assets.normalizedWord`、`content_placements.assetId`、`content_placements.textbookId`、`content_placements.unitId`、`content_publications.requestId` 建立索引。发布、下架和回滚必须在数据库事务中更新发布记录与当前指针。
+
+在 CloudBase Web 控制台配置网页安全域名和自定义身份验证，使内容工作台能够登录后调用 `content-management`。浏览器只向云函数申请上传意图，再直传云存储；不得把长期密钥下发到前端。
+
+允许的素材格式为 PNG、JPEG、WebP、MP3 和 MP4 音频，单文件必须大于 0 且不超过 10 MB，并提供 SHA-256、授权来源和人工审核状态。缺少授权或未审核的素材不能发布。
+
+## 8. 导入与验收内容
+
+`npm run content -- import` 只生成草稿，不保留源包中的审核与发布状态。管理员需在工作台中依次完成：完整预览、提交审核、逐项审核通过、发布、学生端读取、下架、历史解析和回滚。
+
+未来学习记录必须保存 `publicationId`、`assetVersionId` 和 `placementVersionId`，才能解释学生当时使用的内容。历史解析接口只用于解释旧记录，不会把旧版本重新设为当前发布。
+
+## 9. 验收试点环境
 
 至少完成以下检查：
 
@@ -55,8 +81,13 @@ npm run check
 - 临时断网或令云函数不可用时，页面显示明确错误和“再试一次”按钮；
 - 恢复网络后点击重试可以重新读取内容；
 - 试点环境操作不会影响生产环境数据。
+- 内容工作台只能由 `CONTENT_ADMIN_IDS` 中的管理员调用；
+- 发布后学生端只看到当前版本，下架后当前查询不再返回，历史 ID 仍可解析；
+- 回滚会创建新发布记录，旧版本和审计记录保持不变。
 
-## 8. 后续迁移到独立腾讯云
+当前仍缺少真实 AppID，因此云端身份、对象存储、事务、网页安全域名、三套云函数上传和真机行为必须在取得 AppID 后按本节补做。
+
+## 10. 后续迁移到独立腾讯云
 
 迁移时保留页面、`ContentLoader`、共享内容契约和运行时校验，仅替换基础设施适配层：
 

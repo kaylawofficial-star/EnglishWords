@@ -1,5 +1,5 @@
 {
-  "description": "K12 英语单词速记微信小程序",
+  "description": "K12 英语单词速记与版本化内容发布",
   "compileType": "miniprogram",
   "miniprogramRoot": "dist/miniprogram/",
   "cloudfunctionRoot": "dist/cloudfunctions/",
@@ -9,5 +9,5 @@
     "minified": true,
     "postcss": true
   },
-  "projectname": "k12-english-word-voyage"
+  "projectname": "k12-vocabulary-content-studio"
 }

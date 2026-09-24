@@ -7,7 +7,7 @@ it('builds a self-contained WeChat project', () => {
   rmSync(resolve('dist'), { recursive: true, force: true });
   const npmCli = process.env.npm_execpath;
   if (!npmCli) throw new Error('npm_execpath is required to run the build test');
-  execFileSync(process.execPath, [npmCli, 'run', 'build'], { stdio: 'inherit' });
+  execFileSync(process.execPath, [npmCli, 'run', 'build:wechat'], { stdio: 'inherit' });
 
   const required = [
     'dist/miniprogram/app.js',
