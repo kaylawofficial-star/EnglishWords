@@ -2,7 +2,7 @@ import type { AdminAuthProvider } from '../auth/admin-auth-provider';
 import type { MediaStorage } from '../media/media-storage';
 
 export type ManagementAction =
-  | 'listContent' | 'getDraft' | 'saveDraft' | 'submitForReview'
+  | 'listContent' | 'getDraft' | 'getHistory' | 'saveDraft' | 'submitForReview'
   | 'approve' | 'reject' | 'preview' | 'publish'
   | 'withdraw' | 'rollback' | 'createUploadIntent';
 
@@ -47,10 +47,9 @@ export function createContentManagementHandler(dependencies: HandlerDependencies
 }
 
 function isAction(value: unknown): value is ManagementAction {
-  return typeof value === 'string' && ['listContent', 'getDraft', 'saveDraft', 'submitForReview', 'approve', 'reject', 'preview', 'publish', 'withdraw', 'rollback', 'createUploadIntent'].includes(value);
+  return typeof value === 'string' && ['listContent', 'getDraft', 'getHistory', 'saveDraft', 'submitForReview', 'approve', 'reject', 'preview', 'publish', 'withdraw', 'rollback', 'createUploadIntent'].includes(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
-

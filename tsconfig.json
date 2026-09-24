@@ -3,6 +3,7 @@
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
@@ -14,6 +15,8 @@
     "shared/**/*.ts",
     "miniprogram/**/*.ts",
     "cloudfunctions/**/*.ts",
+    "admin/**/*.ts",
+    "admin/**/*.tsx",
     "tests/**/*.ts",
     "vitest.config.ts"
   ]

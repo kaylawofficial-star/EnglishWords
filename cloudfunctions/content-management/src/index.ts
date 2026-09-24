@@ -38,6 +38,7 @@ async function execute(service: ContentManagementService, action: Exclude<Manage
   switch (action) {
     case 'listContent': return service.listContent(payload);
     case 'getDraft': return service.getDraft(String(payload.draftId ?? ''));
+    case 'getHistory': return service.getHistory(String(payload.draftId ?? ''));
     case 'preview': return service.previewDraft(String(payload.draftId ?? ''));
     case 'saveDraft': return payload.draftId
       ? service.updateDraft({ ...payload, actorId } as never)

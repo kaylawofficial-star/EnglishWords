@@ -108,12 +108,33 @@ export class ContentManagementService {
       if (filters.textbookId && placement.textbookId !== filters.textbookId) return [];
       if (filters.unitId && placement.unitId !== filters.unitId) return [];
       if (filters.status && placementVersion.status !== filters.status) return [];
-      return [{ draftId: createDraftId(assetVersion.id, placementVersion.id), word: assetVersion.word, textbookId: placement.textbookId, unitId: placement.unitId, status: placementVersion.status }];
+      return [{
+        draftId: createDraftId(assetVersion.id, placementVersion.id), placementId: placement.id,
+        word: assetVersion.word, textbookId: placement.textbookId, unitId: placement.unitId,
+        status: placementVersion.status,
+        currentPublicationId: state.currentPublicationByPlacement[placement.id] ?? null,
+      }];
     });
   }
 
   async previewDraft(draftId: string) {
     return projectContentPreview(await this.getDraft(draftId));
+  }
+
+  async getHistory(draftId: string) {
+    const bundle = await this.getDraft(draftId);
+    const state = await this.repository.listState();
+    const publications = state.publications.filter((item) => item.placementId === bundle.placement.id);
+    const publicationIds = new Set(publications.map((item) => item.id));
+    return {
+      assetVersions: state.assetVersions.filter((item) => item.assetId === bundle.asset.id),
+      placementVersions: state.placementVersions.filter((item) => item.placementId === bundle.placement.id),
+      reviews: state.reviews.filter((item) => item.assetVersionId === bundle.assetVersion.id || item.placementVersionId === bundle.placementVersion.id),
+      publications,
+      audits: state.audits.filter((item) => item.targetId === bundle.id || publicationIds.has(item.targetId)),
+      currentPublicationId: state.currentPublicationByPlacement[bundle.placement.id] ?? null,
+      placementId: bundle.placement.id,
+    };
   }
 
   async updateDraft(input: { actorId: string; draftId: string; expectedRevision: number; changes: UpdateDraftChanges }) {
