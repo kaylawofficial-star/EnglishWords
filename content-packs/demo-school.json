@@ -1,0 +1,113 @@
+{
+  "assets": [
+    {
+      "id": "asset-school",
+      "normalizedWord": "school",
+      "createdAt": "2026-09-23T00:00:00.000Z"
+    }
+  ],
+  "assetVersions": [
+    {
+      "id": "asset-version-school-1",
+      "assetId": "asset-school",
+      "version": 1,
+      "revision": 2,
+      "status": "approved",
+      "word": "school",
+      "baseMeaning": "学校",
+      "audio": {
+        "id": "audio-school",
+        "storageKey": "media/school.mp3",
+        "mediaType": "audio",
+        "mimeType": "audio/mpeg",
+        "byteSize": 1200,
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "rightsSource": "自制录音",
+        "reviewed": true
+      },
+      "mnemonicStory": "清晨走进 school，书声像钟声一样提醒我开始学习。",
+      "image": {
+        "id": "image-school",
+        "storageKey": "media/school.webp",
+        "mediaType": "image",
+        "mimeType": "image/webp",
+        "byteSize": 2400,
+        "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "rightsSource": "自制插画",
+        "reviewed": true
+      },
+      "distractors": ["医院", "公园", "车站"],
+      "correctionCandidates": ["注意 /uː/ 长元音", "结尾 /l/ 轻收音"],
+      "createdBy": "demo-admin",
+      "createdAt": "2026-09-23T00:00:00.000Z"
+    }
+  ],
+  "placements": [
+    {
+      "id": "placement-school-demo",
+      "assetId": "asset-school",
+      "textbookId": "demo-primary-3-first",
+      "unitId": "demo-unit-2"
+    }
+  ],
+  "placementVersions": [
+    {
+      "id": "placement-version-school-1",
+      "placementId": "placement-school-demo",
+      "version": 1,
+      "revision": 2,
+      "status": "approved",
+      "textbookMeaning": "学校",
+      "order": 1,
+      "ageCopyOverride": "我们每天学习和见到老师同学的地方。",
+      "createdBy": "demo-admin",
+      "createdAt": "2026-09-23T00:00:00.000Z"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "review-school-1",
+      "assetVersionId": "asset-version-school-1",
+      "placementVersionId": "placement-version-school-1",
+      "reviewerId": "demo-admin",
+      "result": "approved",
+      "checklist": {
+        "meaning": true,
+        "audio": true,
+        "mnemonic": true,
+        "ageAppropriate": true,
+        "mediaRights": true,
+        "distractors": true,
+        "pronunciationRisk": true
+      },
+      "notes": "演示内容已完成人工审核",
+      "reviewedAt": "2026-09-23T00:10:00.000Z"
+    }
+  ],
+  "publications": [
+    {
+      "id": "publication-school-1",
+      "placementId": "placement-school-demo",
+      "assetVersionId": "asset-version-school-1",
+      "placementVersionId": "placement-version-school-1",
+      "status": "published",
+      "sequence": 1,
+      "requestId": "request-school-demo-1",
+      "publishedBy": "demo-admin",
+      "publishedAt": "2026-09-23T00:15:00.000Z"
+    }
+  ],
+  "audits": [
+    {
+      "id": "audit-school-published",
+      "action": "published",
+      "actorId": "demo-admin",
+      "targetId": "publication-school-1",
+      "reason": "演示发布",
+      "createdAt": "2026-09-23T00:15:00.000Z"
+    }
+  ],
+  "currentPublicationByPlacement": {
+    "placement-school-demo": "publication-school-1"
+  }
+}
